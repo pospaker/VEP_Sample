@@ -703,5 +703,14 @@ namespace Ki_WAT
             WriteReceptionZone();
         }
 
+
+        public void SetAllSyncZero()
+        {
+            _vepManager.SynchroZone.ResetAllValues();
+            WriteSynchroZone();
+        }
+
+
+      
     }
 }

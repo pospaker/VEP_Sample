@@ -22,12 +22,88 @@ namespace Ki_WAT
         public const ushort VepStatus_Waiting = 1;
         public const ushort VepStatus_Working = 2;
 
-        public ushort VepStatus { get; set; }
-        public ushort VepCycleInterruption { get; set; }
-        public ushort VepCycleEnd { get; set; }
-        public ushort BenchCycleInterruption { get; set; }
-        public ushort BenchCycleEnd { get; set; }
-        public ushort StartCycle { get; set; }
+        public const int ZoneSize = 6;
+
+
+        private ushort[] _values;
+
+        public ushort VepStatus
+        {
+            get => _values[Offset_VepStatus];
+            set
+            {
+                if (_values[Offset_VepStatus] != value)
+                {
+                    _values[Offset_VepStatus] = value;
+                    _isChanged = true;
+                }
+            }
+        }
+
+        public ushort VepCycleInterruption
+        {
+            get => _values[Offset_VepCycleInterruption];
+            set
+            {
+                if (_values[Offset_VepCycleInterruption] != value)
+                {
+                    _values[Offset_VepCycleInterruption] = value;
+                    _isChanged = true;
+                }
+            }
+        }
+
+        public ushort VepCycleEnd
+        {
+            get => _values[Offset_VepCycleEnd];
+            set
+            {
+                if (_values[Offset_VepCycleEnd] != value)
+                {
+                    _values[Offset_VepCycleEnd] = value;
+                    _isChanged = true;
+                }
+            }
+        }
+
+        public ushort BenchCycleInterruption
+        {
+            get => _values[Offset_BenchCycleInterruption];
+            set
+            {
+                if (_values[Offset_BenchCycleInterruption] != value)
+                {
+                    _values[Offset_BenchCycleInterruption] = value;
+                    _isChanged = true;
+                }
+            }
+        }
+
+        public ushort BenchCycleEnd
+        {
+            get => _values[Offset_BenchCycleEnd];
+            set
+            {
+                if (_values[Offset_BenchCycleEnd] != value)
+                {
+                    _values[Offset_BenchCycleEnd] = value;
+                    _isChanged = true;
+                }
+            }
+        }
+
+        public ushort StartCycle
+        {
+            get => _values[Offset_StartCycle];
+            set
+            {
+                if (_values[Offset_StartCycle] != value)
+                {
+                    _values[Offset_StartCycle] = value;
+                    _isChanged = true;
+                }
+            }
+        }
 
         private bool _isChanged;
         public bool IsChanged => _isChanged;
@@ -37,7 +113,6 @@ namespace Ki_WAT
             _isChanged = false;
         }
 
-        private ushort[] _values;
 
         public ushort this[int index]
         {
@@ -81,6 +156,7 @@ namespace Ki_WAT
 
         public VEPBenchStatusZone()
         {
+            _values = new ushort[ZoneSize];
             VepStatus = VepStatus_Waiting;
             VepCycleInterruption = 0;
             VepCycleEnd = 0;
@@ -92,36 +168,21 @@ namespace Ki_WAT
 
         public void FromRegisters(ushort[] registers)
         {
-            if (registers == null || registers.Length < 6)
+            if (registers == null || registers.Length < ZoneSize)
                 throw new ArgumentException("Invalid register array.");
 
-            bool changed = false;
-
-            if (VepStatus != registers[Offset_VepStatus]) { VepStatus = registers[Offset_VepStatus]; changed = true; }
-            if (VepCycleInterruption != registers[Offset_VepCycleInterruption]) { VepCycleInterruption = registers[Offset_VepCycleInterruption]; changed = true; }
-            if (VepCycleEnd != registers[Offset_VepCycleEnd]) { VepCycleEnd = registers[Offset_VepCycleEnd]; changed = true; }
-            if (BenchCycleInterruption != registers[Offset_BenchCycleInterruption]) { BenchCycleInterruption = registers[Offset_BenchCycleInterruption]; changed = true; }
-            if (BenchCycleEnd != registers[Offset_BenchCycleEnd]) { BenchCycleEnd = registers[Offset_BenchCycleEnd]; changed = true; }
-            if (StartCycle != registers[Offset_StartCycle]) { StartCycle = registers[Offset_StartCycle]; changed = true; }
-
-            if (changed)
+            if (_values == null || !_values.SequenceEqual(registers))
             {
+                _values = (ushort[])registers.Clone();
                 _isChanged = true;
             }
         }
 
         public ushort[] ToRegisters()
         {
-            ushort[] registers = new ushort[6];
-
-            registers[Offset_VepStatus] = VepStatus;
-            registers[Offset_VepCycleInterruption] = VepCycleInterruption;
-            registers[Offset_VepCycleEnd] = VepCycleEnd;
-            registers[Offset_BenchCycleInterruption] = BenchCycleInterruption;
-            registers[Offset_BenchCycleEnd] = BenchCycleEnd;
-            registers[Offset_StartCycle] = StartCycle;
-
-            return registers;
+            ushort[] result = new ushort[_values.Length];
+            Array.Copy(_values, result, _values.Length);
+            return result;
         }
 
         public string GetVepStatusString()

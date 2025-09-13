@@ -35,17 +35,142 @@ namespace Ki_WAT
         public const ushort ExchStatus_Response = 1; // 요청 없음
         public const ushort ExchStatus_Ready = 2; // 요청 가능
 
-        public ushort AddReSize { get; set; }
-        public ushort ExchStatus { get; set; }
-        public byte FctCode { get; set; }
-        public byte PCNum { get; set; }
-        public byte ProcessCode { get; set; }
-        public byte SubFctCode { get; set; }
-        public ushort[] Data { get; set; }
-        public int TotalSize => Offset_DataStart + (Data?.Length ?? 0);
-
         private bool _isChanged;
         public bool IsChanged => _isChanged;
+
+        private ushort[] _values;
+
+        public ushort AddReSize
+        {
+            get => _values.Length > Offset_AddReSize ? _values[Offset_AddReSize] : (ushort)0;
+            set
+            {
+                if (_values[Offset_AddReSize] != value)
+                {
+                    _values[Offset_AddReSize] = value;
+                    _isChanged = true;
+                }
+            }
+        }
+
+        public ushort ExchStatus
+        {
+            get => _values.Length > Offset_ExchStatus ? _values[Offset_ExchStatus] : (ushort)0;
+            set
+            {
+                if (_values[Offset_ExchStatus] != value)
+                {
+                    _values[Offset_ExchStatus] = value;
+                    _isChanged = true;
+                }
+            }
+        }
+
+        public byte FctCode
+        {
+            get => (byte)(_values.Length > Offset_FctAndPCNum ? _values[Offset_FctAndPCNum] & 0xFF : 0);
+            set
+            {
+                ushort current = _values.Length > Offset_FctAndPCNum ? _values[Offset_FctAndPCNum] : (ushort)0;
+                ushort next = (ushort)((current & ~0xFF) | value);
+                if (current != next)
+                {
+                    _values[Offset_FctAndPCNum] = next;
+                    _isChanged = true;
+                }
+            }
+        }
+
+        public byte PCNum
+        {
+            get => (byte)(_values.Length > Offset_FctAndPCNum ? (_values[Offset_FctAndPCNum] >> 8) & 0xFF : 0);
+            set
+            {
+                ushort current = _values.Length > Offset_FctAndPCNum ? _values[Offset_FctAndPCNum] : (ushort)0;
+                ushort next = (ushort)((current & ~0xFF00) | (value << 8));
+                if (current != next)
+                {
+                    _values[Offset_FctAndPCNum] = next;
+                    _isChanged = true;
+                }
+            }
+        }
+
+        public byte ProcessCode
+        {
+            get => (byte)(_values.Length > Offset_ProcessAndSubFct ? _values[Offset_ProcessAndSubFct] & 0xFF : 0);
+            set
+            {
+                ushort current = _values.Length > Offset_ProcessAndSubFct ? _values[Offset_ProcessAndSubFct] : (ushort)0;
+                ushort next = (ushort)((current & ~0xFF) | value);
+                if (current != next)
+                {
+                    _values[Offset_ProcessAndSubFct] = next;
+                    _isChanged = true;
+                }
+            }
+        }
+
+        public byte SubFctCode
+        {
+            get => (byte)(_values.Length > Offset_ProcessAndSubFct ? (_values[Offset_ProcessAndSubFct] >> 8) & 0xFF : 0);
+            set
+            {
+                ushort current = _values.Length > Offset_ProcessAndSubFct ? _values[Offset_ProcessAndSubFct] : (ushort)0;
+                ushort next = (ushort)((current & ~0xFF00) | (value << 8));
+                if (current != next)
+                {
+                    _values[Offset_ProcessAndSubFct] = next;
+                    _isChanged = true;
+                }
+            }
+        }
+
+        public ushort[] Data
+        {
+            get
+            {
+                if (_values == null || _values.Length <= Offset_DataStart) return new ushort[0];
+
+                ushort[] data = new ushort[_values.Length - Offset_DataStart];
+                Array.Copy(_values, Offset_DataStart, data, 0, data.Length);
+
+                return data;
+            }
+            set
+            {
+                int dataSize = value?.Length ?? 0;
+                ushort[] newValues = new ushort[Offset_DataStart + dataSize];
+
+                if (_values != null)
+                {
+                    Array.Copy(_values, 0, newValues, 0, Math.Min(Offset_DataStart, _values.Length));
+                }
+
+                if (value != null)
+                {
+                    Array.Copy(value, 0, newValues, Offset_DataStart, dataSize);
+                }
+
+                if (_values == null || !newValues.SequenceEqual(_values))
+                {
+                    _values = newValues;
+                    _isChanged = true;
+                }
+            }
+        }
+
+        private VEPBenchReceptionZone(int dataSize = 48)
+        {
+            _values = new ushort[Offset_DataStart + dataSize];
+            ExchStatus = ExchStatus_Response;
+            AddReSize = 0;
+            FctCode = 0;
+            PCNum = 1; // 고정값
+            ProcessCode = 0;
+            SubFctCode = 0;
+            _isChanged = false;
+        }
 
         public void ResetChangedState()
         {
@@ -68,84 +193,25 @@ namespace Ki_WAT
             }
         }
 
-        private VEPBenchReceptionZone(int dataSize = 48)
-        {
-            ExchStatus = ExchStatus_Response;
-            AddReSize = 0;
-            FctCode = 0;
-            PCNum = 1; // 고정값
-            ProcessCode = 0;
-            SubFctCode = 0;
-            Data = new ushort[dataSize];
-            _isChanged = false;
-        }
+
 
         public void FromRegisters(ushort[] registers)
         {
-            if (registers == null || registers.Length < Offset_DataStart)
+            if (registers == null)
                 throw new ArgumentException("Invalid register array.");
 
-            bool changed = false;
-
-            if (AddReSize != registers[Offset_AddReSize]) { AddReSize = registers[Offset_AddReSize]; changed = true; }
-            if (ExchStatus != registers[Offset_ExchStatus]) { ExchStatus = registers[Offset_ExchStatus]; changed = true; }
-
-            byte newFctCode = (byte)(registers[Offset_FctAndPCNum] & 0xFF);
-            byte newPCNum = (byte)((registers[Offset_FctAndPCNum] >> 8) & 0xFF);
-            if (FctCode != newFctCode) { FctCode = newFctCode; changed = true; }
-            if (PCNum != newPCNum) { PCNum = newPCNum; changed = true; }
-
-            byte newProcessCode = (byte)(registers[Offset_ProcessAndSubFct] & 0xFF);
-            byte newSubFctCode = (byte)((registers[Offset_ProcessAndSubFct] >> 8) & 0xFF);
-            if (ProcessCode != newProcessCode) { ProcessCode = newProcessCode; changed = true; }
-            if (SubFctCode != newSubFctCode) { SubFctCode = newSubFctCode; changed = true; }
-
-            int dataSize = registers.Length - Offset_DataStart;
-            if (Data.Length != dataSize)
+            if (_values == null || !registers.SequenceEqual(_values))
             {
-                Data = new ushort[dataSize];
-                changed = true;
-            }
-
-            if (dataSize > 0)
-            {
-                for (int i = 0; i < dataSize; i++)
-                {
-                    if (Data[i] != registers[Offset_DataStart + i])
-                    {
-                        Data[i] = registers[Offset_DataStart + i];
-                        changed = true;
-                    }
-                }
-            }
-
-            if (changed)
-            {
+                _values = (ushort[])registers.Clone();
                 _isChanged = true;
             }
         }
 
         public ushort[] ToRegisters()
         {
-            int totalSize = TotalSize;
-            ushort[] registers = new ushort[totalSize];
-
-            registers[Offset_AddReSize] = AddReSize;
-            registers[Offset_ExchStatus] = ExchStatus;
-
-            registers[Offset_FctAndPCNum] = (ushort)((PCNum << 8) | FctCode);
-            registers[Offset_ProcessAndSubFct] = (ushort)((SubFctCode << 8) | ProcessCode);
-
-            if (Data != null && Data.Length > 0)
-            {
-                for (int i = 0; i < Data.Length; i++)
-                {
-                    if (Offset_DataStart + i < totalSize)
-                        registers[Offset_DataStart + i] = Data[i];
-                }
-            }
-
-            return registers;
+            ushort[] result = new ushort[_values.Length];
+            Array.Copy(_values, result, _values.Length);
+            return result;
         }
 
         public void SetData(ushort[] data, int startIndex = 0)
