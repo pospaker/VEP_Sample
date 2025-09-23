@@ -1,4 +1,4 @@
-﻿using Ki_WAT;
+﻿using KI_VEP;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -50,29 +50,11 @@ namespace VEP_Sample
             _VEP.ReceptionZoneChanged += BenchClient_ReceptionZoneChanged;
 
 
-            InitList();
+            
         }
 
 
-        private void InitList()
-        {
         
-
-            int nAdd = _VEP.Addr_SynchroZone;
-
-            for (int ni = 0; ni < 90; ni++)
-            {
-                ListViewItem item = new ListViewItem("1");
-                item.SubItems.Add(nAdd.ToString());
-                item.SubItems.Add(ni.ToString());
-                item.SubItems.Add("");
-                List_Sync.Items.Add(item);
-                nAdd++;
-                cmbValueList.Items.Add("Sync : " + ni.ToString());
-            }
-
-            cmbValueList.SelectedIndex = 0;
-        }
 
         private void BenchClient_OnDescriptionZoneRead(object sender, VEPBenchDescriptionZone e)
         {
@@ -131,9 +113,28 @@ namespace VEP_Sample
 
         public void UpdateSynchroValues(ushort[] pSync)
         {
-            if (List_Sync.Items.Count > 0)
+			if (List_Sync.Items.Count != pSync.Length)
+			{
+				List_Sync.Items.Clear();
+
+				int nAdd = _VEP.Addr_SynchroZone;
+
+				for (int ni = 0; ni < pSync.Length; ni++)
+				{
+					ListViewItem item = new ListViewItem("1");
+					item.SubItems.Add(nAdd.ToString());
+					item.SubItems.Add(ni.ToString());
+					item.SubItems.Add("");
+					List_Sync.Items.Add(item);
+					nAdd++;
+					cmbValueList.Items.Add("Sync : " + ni.ToString());
+				}
+
+			}
+			if (List_Sync.Items.Count > 0)
             {
-                for (int ni = 0; ni < pSync.Length; ni++)
+				cmbValueList.SelectedIndex = 0;
+				for (int ni = 0; ni < pSync.Length; ni++)
                 {
                     List_Sync.Items[ni].SubItems[3].Text = pSync[ni].ToString();
                 }
@@ -250,5 +251,18 @@ namespace VEP_Sample
             _VEP.WriteStatusZone();
             
         }
-    }
+
+		private void btnAddTransmission_Click(object sender, EventArgs e)
+		{
+			_VEP.ReadAddTransmissionZone();
+			_VEP_Data.AddTransmissionZone.ShowData();
+		}
+
+		private void btnSendPJI_Click(object sender, EventArgs e)
+		{
+			String strPJI = "656252302943";
+			_VEP_Data.SendPJI(strPJI);
+
+		}
+	}
 }

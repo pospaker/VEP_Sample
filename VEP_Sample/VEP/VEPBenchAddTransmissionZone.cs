@@ -1,25 +1,21 @@
-
-
+﻿
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace KI_VEP
 {
-	public class VEPBenchSynchroZone : IVEPBenchZone
+	public class VEPBenchAddTransmissionZone : IVEPBenchZone
 	{
-		private static VEPBenchSynchroZone _instance;
+		private static VEPBenchAddTransmissionZone _instance;
 		private static readonly object _lock = new object();
 
 
-		//public const int SYNCHRO_SIZE_PART2 = 67;
-		//public const int DEFAULT_SYNCHRO_SIZE = SYNCHRO_SIZE_PART1 + SYNCHRO_SIZE_PART2;
-
-
-
-		public static VEPBenchSynchroZone Instance
+		public static VEPBenchAddTransmissionZone Instance
 		{
 			get
 			{
@@ -28,7 +24,7 @@ namespace KI_VEP
 					lock (_lock)
 					{
 						if (_instance == null)
-							_instance = new VEPBenchSynchroZone();
+							_instance = new VEPBenchAddTransmissionZone();
 					}
 				}
 				return _instance;
@@ -66,7 +62,7 @@ namespace KI_VEP
 			_isChanged = false;
 		}
 
-		public VEPBenchSynchroZone(int size = 10)
+		public VEPBenchAddTransmissionZone(int size = 10)
 		{
 			_values = new ushort[size];
 			ResetAllValues();
@@ -134,6 +130,12 @@ namespace KI_VEP
 			return this[index];
 		}
 
-
+		public void ShowData()
+		{
+			for (int i = 0; i < _values.Length; i++)
+			{
+				Console.WriteLine("POS : " + i.ToString() + " VALUE + " + _values[i].ToString());
+			}
+		}
 	}
 }

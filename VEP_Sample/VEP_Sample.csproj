@@ -58,6 +58,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VEP\IVEPBenchZone.cs" />
+    <Compile Include="VEP\VEPBenchAddTransmissionZone.cs" />
     <Compile Include="VEP\VEPBenchClient.cs" />
     <Compile Include="VEP\VEPBenchDataManager.cs" />
     <Compile Include="VEP\VEPBenchDescriptionZone.cs" />
