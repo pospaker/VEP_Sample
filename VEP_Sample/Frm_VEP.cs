@@ -264,5 +264,18 @@ namespace VEP_Sample
 			_VEP_Data.SendPJI(strPJI);
 
 		}
+
+		private void btnSynchroTest_Click(object sender, EventArgs e)
+		{
+			int nSize = _VEP_Data.SynchroZone.Size;
+
+			for (int i = 0; i < nSize; i++)
+			{
+				_VEP_Data.SynchroZone.SetValue(i, (ushort)(i + 1));
+
+			}
+
+			_VEP.WriteSynchroZone();
+		}
 	}
 }

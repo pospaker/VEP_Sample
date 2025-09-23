@@ -273,6 +273,14 @@ namespace KI_VEP
 					return "Unknown Function Code";
 			}
 		}
-
+		public void SetSize(int size)
+		{
+			if (size <= 0) return;
+			_values = new ushort[size];
+			for (int i = 0; i < _values.Length; i++)
+			{
+				_values[i] = 0;
+			}
+		}
 	}
 }

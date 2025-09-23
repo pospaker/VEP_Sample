@@ -130,8 +130,6 @@ namespace KI_VEP
 			//			PCNum			High Byte   1
 			//RZ_Addr + 8 ProcessCode	Low Byte    1
 			//			SubFctCode		High Byte   0
-			//RZ_Addr + 12    Data[0]	Low Byte    1
-			//							High Byte   7
 
 			ReceptionZone.AddReSize = 0;
 			ReceptionZone.FctCode = 6;

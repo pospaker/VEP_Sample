@@ -130,6 +130,13 @@ namespace KI_VEP
 			Addr_SynchroZone = _vepManager.DescriptionZone.SynchroZoneAddr;
 			Addr_TransmissionZone = _vepManager.DescriptionZone.TransmissionZoneAddr;
 			Addr_ReceptionZone = _vepManager.DescriptionZone.ReceptionZoneAddr;
+
+			_vepManager.StatusZone.SetSize(_vepManager.DescriptionZone.StatusZoneSize);
+			_vepManager.SynchroZone.SetSize(_vepManager.DescriptionZone.SynchroZoneSize);
+			_vepManager.ReceptionZone.SetSize(_vepManager.DescriptionZone.ReceptionZoneSize);
+			_vepManager.TransmissionZone.SetSize(_vepManager.DescriptionZone.TransmissionZoneSize);
+			_vepManager.AddTransmissionZone.SetSize(_vepManager.DescriptionZone.AdditionalTZSize);
+
 		}
 
 		public void PerformInitialRead()
@@ -409,12 +416,20 @@ namespace KI_VEP
 		}
 		public void ReadAddTransmissionZone()
 		{
-			_vepManager.ReadTransmissionZonesFromRegisters(ReadAllRegisters);
-
-			if (_vepManager.AddTransmissionZone.IsChanged)
+			try
 			{
-				//OnAddTransmissionZoneChanged();
-				_vepManager.AddTransmissionZone.ResetChangedState();
+
+				_vepManager.ReadTransmissionZonesFromRegisters(ReadAllRegisters);
+
+				if (_vepManager.AddTransmissionZone.IsChanged)
+				{
+					//OnAddTransmissionZoneChanged();
+					_vepManager.AddTransmissionZone.ResetChangedState();
+				}
+			}
+			catch (Exception ex)
+			{
+				LogMessage($"ReadAddTransmissionZone 오류 발생: {ex.Message}");
 			}
 		}
 		private void PollValidityIndicator()
@@ -438,16 +453,50 @@ namespace KI_VEP
 		{
 			CheckConnection();
 
-			try
+			int nLimit = 123;
+			if (count < nLimit)
 			{
-				ushort[] registers = _modbusMaster.ReadHoldingRegisters(1, (ushort)address, (ushort)count);
+				try
+				{
+					ushort[] registers = _modbusMaster.ReadHoldingRegisters(1, (ushort)address, (ushort)count);
 
-				return registers;
+					return registers;
+				}
+				catch (Exception ex)
+				{
+					LogMessage($"ReadAllRegisters 오류 발생: Addr={address}, Count={count}, Error={ex.Message}");
+					throw;
+				}
+
 			}
-			catch (Exception ex)
+			else
 			{
-				LogMessage($"ReadAllRegisters 오류 발생: Addr={address}, Count={count}, Error={ex.Message}");
-				throw;
+				int nDoLoop = count / nLimit + 1;
+				ushort[] register = new ushort[count];
+
+
+
+				for (int i = 0; i < nDoLoop; i++)
+				{
+					int nPartPos = i * nLimit;
+
+					// 마지막 구간일 경우 남은 데이터 수를 계산
+					int nPartSize = Math.Min(nLimit, count - nPartPos);
+
+					try
+					{
+
+						ushort[] part = _modbusMaster.ReadHoldingRegisters(1, (ushort)(address + nPartPos), (ushort)nPartSize);
+						Array.Copy(part, 0, register, nPartPos, nPartSize);
+					}
+					catch (Exception ex)
+					{
+						// 여기서 로깅 또는 재시도 처리
+						Console.WriteLine($"Modbus 읽기 실패: {ex.Message}");
+						throw; // 필요시 상위로 예외 던지기
+					}
+				}
+				return register;
 			}
 		}
 
@@ -505,8 +554,8 @@ namespace KI_VEP
 			try
 			{
 				ushort[] registers = _vepManager.StatusZone.ToRegisters();
-				_modbusMaster.WriteMultipleRegisters(1, Addr_StatusZone, registers);
-
+				//_modbusMaster.WriteMultipleRegisters(1, Addr_StatusZone, registers);
+				WriteMultiple(1, Addr_StatusZone, registers);
 				LogMessage($"Status Zone 쓰기 성공: VepStatus={_vepManager.StatusZone.GetVepStatusString()}, " +
 				 $"StartCycle={_vepManager.StatusZone.StartCycle}, " +
 				 $"VepCycleEnd={_vepManager.StatusZone.VepCycleEnd}, " +
@@ -572,7 +621,8 @@ namespace KI_VEP
 			{
 
 				ushort[] data = _vepManager.SynchroZone.ToRegisters();
-				_modbusMaster.WriteMultipleRegisters(1, Addr_SynchroZone, data);
+				//_modbusMaster.WriteMultipleRegisters(1, Addr_SynchroZone, data);
+				WriteMultiple(1, Addr_SynchroZone, data);
 				OnSynchroZoneChanged();
 				LogMessage($"동기화 영역 쓰기: {string.Join(", ", data)}");
 			}
@@ -591,7 +641,8 @@ namespace KI_VEP
 			try
 			{
 				ushort[] data = _vepManager.ReceptionZone.ToRegisters();
-				_modbusMaster.WriteMultipleRegisters(1, Addr_ReceptionZone, data);
+				//_modbusMaster.WriteMultipleRegisters(1, Addr_ReceptionZone, data);
+				WriteMultiple(1, Addr_ReceptionZone, data);
 				OnReceptionZoneChanged();
 				LogMessage($"수신 영역 쓰기: {string.Join(", ", data)}");
 			}
@@ -609,7 +660,8 @@ namespace KI_VEP
 			try
 			{
 				ushort[] registers = _vepManager.TransmissionZone.ToRegisters();
-				_modbusMaster.WriteMultipleRegisters(1, Addr_TransmissionZone, registers);
+				//_modbusMaster.WriteMultipleRegisters(1, Addr_TransmissionZone, registers);
+				WriteMultiple(1, Addr_TransmissionZone, registers);
 
 				LogMessage($"전송 영역 쓰기 성공: " +
 				  $"AddTSize={_vepManager.TransmissionZone.AddTzSize}, " +
@@ -706,6 +758,38 @@ namespace KI_VEP
 		}
 
 
+		private int WriteMultiple(int nSlaveID, ushort Addr, ushort[] registers)
+		{
+			int nRet = 0;
+			int nSize = registers.Length;
+
+			int nLimit = 123;
+
+			if (nSize < nLimit)
+			{
+				_modbusMaster.WriteMultipleRegisters(1, Addr, registers);
+				return 1;
+			}
+			int nDoLoop = nSize / nLimit + 1;
+
+
+			ushort nStartAddr = Addr;
+			for (int i = 0; i < nDoLoop; i++)
+			{
+				int nPartPos = i * nLimit;
+
+				// 마지막 구간일 경우 남은 데이터 수를 계산
+				int nPartSize = Math.Min(nLimit, nSize - nPartPos);
+
+				ushort[] part = new ushort[nPartSize];
+				Array.Copy(registers, nPartPos, part, 0, nPartSize);
+
+				// Modbus 전송
+				_modbusMaster.WriteMultipleRegisters(1, (ushort)(Addr + nPartPos), part);
+
+			}
+			return nRet;
+		}
 
 	}
 }

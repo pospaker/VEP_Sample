@@ -109,6 +109,7 @@
 			this.button2 = new System.Windows.Forms.Button();
 			this.btnAddTransmission = new System.Windows.Forms.Button();
 			this.btnSendPJI = new System.Windows.Forms.Button();
+			this.btnSynchroTest = new System.Windows.Forms.Button();
 			this.groupBox6.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -945,11 +946,22 @@
 			this.btnSendPJI.UseVisualStyleBackColor = true;
 			this.btnSendPJI.Click += new System.EventHandler(this.btnSendPJI_Click);
 			// 
+			// btnSynchroTest
+			// 
+			this.btnSynchroTest.Location = new System.Drawing.Point(1201, 396);
+			this.btnSynchroTest.Name = "btnSynchroTest";
+			this.btnSynchroTest.Size = new System.Drawing.Size(190, 73);
+			this.btnSynchroTest.TabIndex = 434;
+			this.btnSynchroTest.Text = "Synchro Test";
+			this.btnSynchroTest.UseVisualStyleBackColor = true;
+			this.btnSynchroTest.Click += new System.EventHandler(this.btnSynchroTest_Click);
+			// 
 			// Frm_VEP
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(1463, 901);
+			this.Controls.Add(this.btnSynchroTest);
 			this.Controls.Add(this.btnSendPJI);
 			this.Controls.Add(this.btnAddTransmission);
 			this.Controls.Add(this.button2);
@@ -1121,6 +1133,7 @@
         private System.Windows.Forms.Button button2;
 		private System.Windows.Forms.Button btnAddTransmission;
 		private System.Windows.Forms.Button btnSendPJI;
+		private System.Windows.Forms.Button btnSynchroTest;
 	}
 }
 
