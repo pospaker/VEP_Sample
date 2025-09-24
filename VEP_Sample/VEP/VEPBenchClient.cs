@@ -1,5 +1,4 @@
 ﻿
-
 using Microsoft.Win32;
 
 using NModbus;
@@ -31,6 +30,16 @@ namespace KI_VEP
 		public ushort Addr_SynchroZone;
 		public ushort Addr_TransmissionZone;
 		public ushort Addr_ReceptionZone;
+		public ushort Addr_AddTransmissionZone;
+
+
+		public ushort Size_Validity;
+		public ushort Size_StatusZone;
+		public ushort Size_SynchroZone;
+		public ushort Size_TransmissionZone;
+		public ushort Size_ReceptionZone;
+
+
 
 		public bool IsConnected => _isConnected && _tcpClient != null && _tcpClient.Connected;
 
@@ -130,6 +139,7 @@ namespace KI_VEP
 			Addr_SynchroZone = _vepManager.DescriptionZone.SynchroZoneAddr;
 			Addr_TransmissionZone = _vepManager.DescriptionZone.TransmissionZoneAddr;
 			Addr_ReceptionZone = _vepManager.DescriptionZone.ReceptionZoneAddr;
+			Addr_AddTransmissionZone = _vepManager.DescriptionZone.AdditionalTZAddr;
 
 			_vepManager.StatusZone.SetSize(_vepManager.DescriptionZone.StatusZoneSize);
 			_vepManager.SynchroZone.SetSize(_vepManager.DescriptionZone.SynchroZoneSize);
@@ -416,20 +426,12 @@ namespace KI_VEP
 		}
 		public void ReadAddTransmissionZone()
 		{
-			try
-			{
+			_vepManager.ReadTransmissionZonesFromRegisters(ReadAllRegisters);
 
-				_vepManager.ReadTransmissionZonesFromRegisters(ReadAllRegisters);
-
-				if (_vepManager.AddTransmissionZone.IsChanged)
-				{
-					//OnAddTransmissionZoneChanged();
-					_vepManager.AddTransmissionZone.ResetChangedState();
-				}
-			}
-			catch (Exception ex)
+			if (_vepManager.AddTransmissionZone.IsChanged)
 			{
-				LogMessage($"ReadAddTransmissionZone 오류 발생: {ex.Message}");
+				//OnAddTransmissionZoneChanged();
+				_vepManager.AddTransmissionZone.ResetChangedState();
 			}
 		}
 		private void PollValidityIndicator()
@@ -498,6 +500,7 @@ namespace KI_VEP
 				}
 				return register;
 			}
+
 		}
 
 		public ushort ReadValidityIndicator()
@@ -556,10 +559,6 @@ namespace KI_VEP
 				ushort[] registers = _vepManager.StatusZone.ToRegisters();
 				//_modbusMaster.WriteMultipleRegisters(1, Addr_StatusZone, registers);
 				WriteMultiple(1, Addr_StatusZone, registers);
-				LogMessage($"Status Zone 쓰기 성공: VepStatus={_vepManager.StatusZone.GetVepStatusString()}, " +
-				 $"StartCycle={_vepManager.StatusZone.StartCycle}, " +
-				 $"VepCycleEnd={_vepManager.StatusZone.VepCycleEnd}, " +
-				 $"BenchCycleEnd={_vepManager.StatusZone.BenchCycleEnd}");
 
 				OnStatusZoneChanged();
 			}
@@ -570,37 +569,35 @@ namespace KI_VEP
 			}
 		}
 
-		public ushort[] ReadSynchroZone(int startIndex, int count)
-		{
-			CheckConnection();
-
-			ushort modbusStartAddr = (ushort)(Addr_SynchroZone + startIndex);
-
-			if (count < 1 || count > 123)
-				throw new ArgumentOutOfRangeException(nameof(count), "numberOfPoints must be between 1 and 123 inclusive.");
-
-			try
-			{
-				ushort[] registers = _modbusMaster.ReadHoldingRegisters(1, modbusStartAddr, (ushort)count);
-				LogMessage($"동기화 영역 부분 읽기: Start={modbusStartAddr}, Count={count}, Data={string.Join(",", registers)}");
-
-				return registers;
-			}
-			catch (Exception ex)
-			{
-				LogMessage($"동기화 영역 읽기 오류: {ex.Message}");
-				throw;
-			}
-		}
-
-		public void WriteSyncroZone(ushort pSyncro, ushort nVal)
+		public void WriteStatusZone(ushort pAddr, ushort nVal)
 		{
 			CheckConnection();
 
 			try
 			{
 				//_vepManager.SynchroZone.SetValue(pSyncro, nVal);
-				ushort addr = (ushort)(Addr_SynchroZone + pSyncro);
+				ushort addr = (ushort)(Addr_StatusZone + pAddr);
+				_modbusMaster.WriteSingleRegister(1, addr, nVal);
+				OnStatusZoneChanged();
+
+
+			}
+			catch (Exception ex)
+			{
+				LogMessage($"동기화 영역 쓰기 오류: {ex.Message}");
+				throw;
+			}
+
+		}
+
+		public void WriteSyncroZone(ushort pAddr, ushort nVal)
+		{
+			CheckConnection();
+
+			try
+			{
+				//_vepManager.SynchroZone.SetValue(pSyncro, nVal);
+				ushort addr = (ushort)(Addr_SynchroZone + pAddr);
 				_modbusMaster.WriteSingleRegister(1, addr, nVal);
 				OnSynchroZoneChanged();
 
@@ -652,7 +649,26 @@ namespace KI_VEP
 				throw;
 			}
 		}
+		public void WriteReceptionZone(ushort pAddr, ushort nVal)
+		{
+			CheckConnection();
 
+			try
+			{
+				//_vepManager.SynchroZone.SetValue(pSyncro, nVal);
+				ushort addr = (ushort)(Addr_ReceptionZone + pAddr);
+				_modbusMaster.WriteSingleRegister(1, addr, nVal);
+				OnReceptionZoneChanged();
+
+
+			}
+			catch (Exception ex)
+			{
+				LogMessage($"동기화 영역 쓰기 오류: {ex.Message}");
+				throw;
+			}
+
+		}
 		public void WriteTransmissionZone()
 		{
 			CheckConnection();
@@ -679,6 +695,28 @@ namespace KI_VEP
 				throw;
 			}
 		}
+		public void WriteTransmissionZone(ushort pAddr, ushort nVal)
+		{
+			CheckConnection();
+
+			try
+			{
+				//_vepManager.SynchroZone.SetValue(pSyncro, nVal);
+				ushort addr = (ushort)(Addr_TransmissionZone + pAddr);
+				_modbusMaster.WriteSingleRegister(1, addr, nVal);
+				OnTransmissionZoneChanged();
+
+
+			}
+			catch (Exception ex)
+			{
+				LogMessage($"동기화 영역 쓰기 오류: {ex.Message}");
+				throw;
+			}
+
+		}
+
+
 
 		// 연결 상태 확인
 		private void CheckConnection()
@@ -790,6 +828,7 @@ namespace KI_VEP
 			}
 			return nRet;
 		}
+
 
 	}
 }

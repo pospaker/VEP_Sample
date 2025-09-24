@@ -928,9 +928,9 @@
 			// 
 			// btnAddTransmission
 			// 
-			this.btnAddTransmission.Location = new System.Drawing.Point(1194, 222);
+			this.btnAddTransmission.Location = new System.Drawing.Point(1162, 191);
 			this.btnAddTransmission.Name = "btnAddTransmission";
-			this.btnAddTransmission.Size = new System.Drawing.Size(198, 72);
+			this.btnAddTransmission.Size = new System.Drawing.Size(198, 57);
 			this.btnAddTransmission.TabIndex = 432;
 			this.btnAddTransmission.Text = "Add Transmission Read";
 			this.btnAddTransmission.UseVisualStyleBackColor = true;
@@ -938,9 +938,9 @@
 			// 
 			// btnSendPJI
 			// 
-			this.btnSendPJI.Location = new System.Drawing.Point(1194, 310);
+			this.btnSendPJI.Location = new System.Drawing.Point(1162, 265);
 			this.btnSendPJI.Name = "btnSendPJI";
-			this.btnSendPJI.Size = new System.Drawing.Size(198, 72);
+			this.btnSendPJI.Size = new System.Drawing.Size(198, 54);
 			this.btnSendPJI.TabIndex = 433;
 			this.btnSendPJI.Text = "Send PJI";
 			this.btnSendPJI.UseVisualStyleBackColor = true;
@@ -948,9 +948,9 @@
 			// 
 			// btnSynchroTest
 			// 
-			this.btnSynchroTest.Location = new System.Drawing.Point(1201, 396);
+			this.btnSynchroTest.Location = new System.Drawing.Point(1163, 336);
 			this.btnSynchroTest.Name = "btnSynchroTest";
-			this.btnSynchroTest.Size = new System.Drawing.Size(190, 73);
+			this.btnSynchroTest.Size = new System.Drawing.Size(197, 58);
 			this.btnSynchroTest.TabIndex = 434;
 			this.btnSynchroTest.Text = "Synchro Test";
 			this.btnSynchroTest.UseVisualStyleBackColor = true;

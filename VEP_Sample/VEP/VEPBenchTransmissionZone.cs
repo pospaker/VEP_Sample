@@ -37,6 +37,11 @@ namespace KI_VEP
 		public const ushort ExchStatus_Request = 2; // 요청 가능
 		private ushort[] _values;
 
+
+		private char[] _charBuffer;
+		private int _dataSize = 0;
+		public string DataString { get; private set; }
+
 		public ushort AddTzSize
 		{
 			get => _values.Length > Offset_AddTSize ? _values[Offset_AddTSize] : (ushort)0;
@@ -217,6 +222,37 @@ namespace KI_VEP
 				}
 			}
 
+			//Data를 String으로 만들어 놓는다.
+			{
+				int startIndex = 12;
+
+				int length = _values[startIndex] & 0x00FF;  // 문자열 길이 (Low Byte)
+				_dataSize = length;
+
+				int charPos = 0;
+
+				// 첫 글자 (High Byte of startIndex)
+				byte firstChar = (byte)((_values[startIndex] >> 8) & 0x00FF);
+				if (firstChar != 0) _charBuffer[charPos++] = (char)firstChar;
+
+				// 나머지 문자들
+				for (int i = 1; i < length; i++)
+				{
+					ushort value = _values[startIndex + i];
+					byte low = (byte)(value & 0x00FF);
+					byte high = (byte)((value >> 8) & 0x00FF);
+
+					if (low != 0) _charBuffer[charPos++] = (char)low;
+					if (high != 0) _charBuffer[charPos++] = (char)high;
+				}
+
+				// 버퍼가 부족하면 늘리기
+				if (_charBuffer.Length < charPos) _charBuffer = new char[charPos];
+
+				DataString = new string(_charBuffer, 0, charPos);
+
+			}
+
 			if (changed)
 			{
 				_isChanged = true;
@@ -281,6 +317,16 @@ namespace KI_VEP
 			{
 				_values[i] = 0;
 			}
+			_charBuffer = new char[size];
+		}
+		public void SetValue(int index, ushort value)
+		{
+			_values[index] = value;
+		}
+
+		public int GetValue(int index)
+		{
+			return _values[index];
 		}
 	}
 }

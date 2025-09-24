@@ -50,8 +50,7 @@ namespace VEP_Sample
             _VEP.ReceptionZoneChanged += BenchClient_ReceptionZoneChanged;
 
 
-            
-        }
+		}
 
 
         
@@ -159,11 +158,11 @@ namespace VEP_Sample
         {
             if (InvokeRequired)
             {
-                BeginInvoke(new Action(() => UpdateTransmissionInfo(e.AddTzSize, e.ExchStatus, e.FctCode, e.PCNum, e.ProcessCode, e.SubFctCode)));
+                BeginInvoke(new Action(() => UpdateTransmissionInfo(e.AddTzSize, e.ExchStatus, e.FctCode, e.PCNum, e.ProcessCode, e.SubFctCode, e.DataString)));
             }
             else
             {
-                UpdateTransmissionInfo(e.AddTzSize, e.ExchStatus, e.FctCode, e.PCNum, e.ProcessCode, e.SubFctCode);
+                UpdateTransmissionInfo(e.AddTzSize, e.ExchStatus, e.FctCode, e.PCNum, e.ProcessCode, e.SubFctCode, e.DataString);
             }
 
             if (e.IsRequest)
@@ -172,7 +171,7 @@ namespace VEP_Sample
             }
         }
 
-        public void UpdateTransmissionInfo(ushort size, ushort exchStatus, byte fctCode, byte pcNum, byte processCode, byte subFctCode)
+        public void UpdateTransmissionInfo(ushort size, ushort exchStatus, byte fctCode, byte pcNum, byte processCode, byte subFctCode, String DataString)
         {
             txtAddrTzSize.Text = size.ToString();
             txtTzExchStatus.Text = exchStatus.ToString();
@@ -180,7 +179,9 @@ namespace VEP_Sample
             txtTzPCNum.Text = pcNum.ToString();
             txtTzProcessCode.Text = processCode.ToString();
             txtTzSubFctCode.Text = subFctCode.ToString();
-        }
+			richTextBox1.Text = DataString;
+
+		}
 
         public void UpdateReceptionInfo(ushort size, ushort exchStatus, byte fctCode, byte pcNum, byte processCode, byte subFctCode)
         {

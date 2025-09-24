@@ -176,7 +176,7 @@ namespace KI_VEP
 
 			if (_values.Length != registers.Length)
 			{
-				
+
 				_values = new ushort[registers.Length];
 				changed = true;
 			}
@@ -217,6 +217,7 @@ namespace KI_VEP
 					return $"Unknown({VepStatus})";
 			}
 		}
+
 		public void SetSize(int size)
 		{
 			if (size <= 0) return;
@@ -227,5 +228,10 @@ namespace KI_VEP
 			}
 		}
 
+
+		public int GetValue(int index)
+		{
+			return this[index];
+		}
 	}
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -66,6 +67,31 @@ namespace KI_VEP
 			writeRegistersFunc(DescriptionZone.TransmissionZoneAddr, TransmissionZone.ToRegisters());
 		}
 
+
+
+
+		public int GetVEPStatus()
+		{
+			return StatusZone.GetValue(0);
+		}
+		public bool IsExchange()
+		{
+			int nTZEx1 = TransmissionZone.GetValue(3);
+			int nRZEx2 = ReceptionZone.GetValue(3);
+
+			if (nTZEx1 != 1) return false;
+			if (nRZEx2 != 1) return false;
+			return true;
+		}
+		public void SetRZExchange(int nTZEx1)
+		{
+			_parent.WriteReceptionZone((ushort)3, (ushort)nTZEx1);
+		}
+		public void SetTZExchange(int nTZEx1)
+		{
+			_parent.WriteTransmissionZone((ushort)3, (ushort)nTZEx1);
+		}
+
 		public bool IsSyncroZero()
 		{
 			bool bZero = true;
@@ -83,9 +109,19 @@ namespace KI_VEP
 		public int StartCycle()
 		{
 			int nRet = 0;
-
-
-
+			_parent.WriteStatusZone((ushort)5, 1);
+			return nRet;
+		}
+		public int BenchCycleEnd()
+		{
+			int nRet = 0;
+			_parent.WriteStatusZone((ushort)4, 1);
+			return nRet;
+		}
+		public int BenchCycleBrake()
+		{
+			int nRet = 0;
+			_parent.WriteStatusZone((ushort)3, 1);
 			return nRet;
 		}
 
@@ -98,9 +134,70 @@ namespace KI_VEP
 				SynchroZone.SetValue(i, 0);
 				_parent.WriteSynchroZone();
 			}
-
 			return 0;
 		}
+		public bool IsOPMsgAnsi()
+		{
+			if (TransmissionZone.FctCode == 20 &&
+				TransmissionZone.PCNum == 1 &&
+				(TransmissionZone.ProcessCode == 1 || TransmissionZone.ProcessCode == 2) &&
+				TransmissionZone.SubFctCode == 2)
+			{
+				return true;
+			}
+			return false;
+		}
+		public bool IsOPMsgUnicode()
+		{
+			if (TransmissionZone.FctCode == 21 &&
+				TransmissionZone.PCNum == 1 &&
+				TransmissionZone.ProcessCode == 1 &&
+				TransmissionZone.SubFctCode == 2)
+			{
+				return true;
+			}
+			return false;
+		}
+		public String GetOPMessageAnsi()
+		{
+			// OPMessage는 최대 크기가 20을 넘지 않는다. (도큐먼트참조)
+			//TZ_Addr + 12    Data[0]	Low Byte    14 : Length
+			//							High Byte   84(ANSI code “T”)
+			//TZ_Addr + 13    Data[1]	Low Byte    72(ANSI code “H”)
+			//							High Byte   73(ANSI code “I”)
+			//TZ_Addr + 14    Data[2]	Low Byte    83(ANSI code “S”)
+			//							High Byte   32(ANSI code “_”)
+			//TZ_Addr + 15    Data[3]	Low Byte    73(ANSI code “I”)
+			//							High Byte   83(ANSI code “S”)
+			//TZ_Addr + 16    Data[4]	Low Byte    32(ANSI code “_”)
+			//							High Byte   65(ANSI code “A”)
+			//TZ_Addr + 17    Data[5]	Low Byte    32(ANSI code “_”)
+			//							High Byte   84(ANSI code “T”)
+			//TZ_Addr + 18    Data[6]	Low Byte    69(ANSI code “E”)
+			//							High Byte   83(ANSI code “S”)
+			//TZ_Addr + 19    Data[7]	Low Byte    84(ANSI code “T”)
+			//							High Byte   0
+
+			if (TransmissionZone.FctCode == 20 &&
+				TransmissionZone.PCNum == 1 &&
+				TransmissionZone.ProcessCode == 1 &&
+				TransmissionZone.SubFctCode == 2)
+			{
+
+				return TransmissionZone.DataString;
+			}
+			else
+			{
+				String str = "";
+				return str;
+			}
+		}
+		public String GetTransmissionData()
+		{
+			return TransmissionZone.DataString; ;
+		}
+
+
 
 		public bool IsRequestPJI()
 		{
@@ -130,6 +227,8 @@ namespace KI_VEP
 			//			PCNum			High Byte   1
 			//RZ_Addr + 8 ProcessCode	Low Byte    1
 			//			SubFctCode		High Byte   0
+			//RZ_Addr + 12    Data[0]	Low Byte    1
+			//							High Byte   7
 
 			ReceptionZone.AddReSize = 0;
 			ReceptionZone.FctCode = 6;

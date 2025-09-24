@@ -134,6 +134,13 @@ namespace KI_VEP
 			return this[index];
 		}
 
+		public void ShowData()
+		{
+			for (int i = 0; i < _values.Length; i++)
+			{
+				Console.WriteLine("POS : " + i.ToString() + " VALUE + " + _values[i].ToString());
+			}
+		}
 		public void SetSize(int size)
 		{
 			if (size <= 0) return;
