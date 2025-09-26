@@ -127,7 +127,7 @@ namespace KI_VEP
 
 		public int SetSyncroZero()
 		{
-			int nSize = DescriptionZone.SynchroZoneSize;
+			int nSize = SynchroZone.Size;
 			for (int i = 0; i < nSize; i++)
 			{
 
