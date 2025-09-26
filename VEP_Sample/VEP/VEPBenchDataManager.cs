@@ -203,11 +203,11 @@ namespace KI_VEP
 		{
 			bool bRequest = false;
 
-			if (ReceptionZone.AddReSize == 0 &&
-				ReceptionZone.FctCode == 6 &&
-				ReceptionZone.PCNum == 1 &&
-				ReceptionZone.ProcessCode == 1 &&
-				ReceptionZone.SubFctCode == 0
+			if (TransmissionZone.AddTzSize == 0 &&
+				TransmissionZone.FctCode == 6 &&
+				TransmissionZone.PCNum == 1 &&
+				TransmissionZone.ProcessCode == 1 &&
+				TransmissionZone.SubFctCode == 0
 			)
 			{
 				bRequest = true;
