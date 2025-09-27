@@ -48,6 +48,7 @@ namespace VEP_Sample
             _VEP.SynchroZoneChanged += BenchClient_SynchroZoneChanged;
             _VEP.TransmissionZoneChanged += BenchClient_TransmissionZoneChanged;
             _VEP.ReceptionZoneChanged += BenchClient_ReceptionZoneChanged;
+			
 
 
 		}
@@ -257,6 +258,8 @@ namespace VEP_Sample
 		{
 			_VEP.ReadAddTransmissionZone();
 			_VEP_Data.AddTransmissionZone.ShowData();
+
+			
 		}
 
 		private void btnSendPJI_Click(object sender, EventArgs e)
