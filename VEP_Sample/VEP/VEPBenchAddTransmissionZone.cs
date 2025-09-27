@@ -178,6 +178,7 @@ namespace KI_VEP
 			{
 				_values[i] = 0;
 			}
+			_charBuffer = new char[size];
 		}
 	}
 }
